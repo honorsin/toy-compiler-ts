@@ -1,0 +1,9 @@
+.textarea{
+    height: 480px;
+    border: 1px solid black;
+    counter-reset: line;
+    font-family: monospace
+}
+.popover{
+    margin-left: 10px
+}
