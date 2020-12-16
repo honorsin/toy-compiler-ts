@@ -1,3 +1,5 @@
+/* eslint-disable no-undef */
+/* eslint-disable no-restricted-globals */
 self.addEventListener("message", startCounter);
 
 function startCounter(event) {

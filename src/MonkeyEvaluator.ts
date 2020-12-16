@@ -1,5 +1,23 @@
+interface InfixProps{
+	value: number|boolean
+}
+interface BuiltinsArgs{
+	[index: number]:ArrayCtr;
+	length:number;
+}
 class BaseObject {
-	constructor () {
+	INTEGER_OBJ: string
+	BOOLEAN_OBJ: string
+	NULL_OBJ: string
+	ERROR_OBJ: string
+	RETURN_VALUE_OBJECT: string
+	FUNCTION_LITERAL: string
+	FUNCTION_CALL: string
+	STRING_OBJ: string
+	ARRAY_OBJ: string
+	HASH_OBJ: string
+	value: any
+	constructor (prop) {
 		this.INTEGER_OBJ = "INTEGER"
 		this.BOOLEAN_OBJ = "BOOLEAN"
 		this.NULL_OBJ = "NULL"
@@ -12,23 +30,25 @@ class BaseObject {
 		this.HASH_OBJ = "Hash"
 	}
 
-	type() {return null}
+	type:()=> string
 
-	inspect() {return null}
+	inspect: ()=> string
 }
 
 class Hash extends BaseObject {
+	keys: any
+	values: any
 	constructor(props) {
 		super(props)
 		this.keys = props.keys
 		this.values = props.values
 	}
 
-	type () {
+	type =()=> {
 		return this.HASH_OBJ
 	}
 
-	inspect () {
+	inspect = ()=> {
 		let s = "{"
 		for (let i = 0; i < this.keys.length; i++) {
 			const pair =`${this.keys[i].inspect()}: ${this.values[i].inspect()},`
@@ -39,17 +59,18 @@ class Hash extends BaseObject {
 	}
 }
 
-class Array extends BaseObject {
+class ArrayCtr extends BaseObject {
+	elements: Array<BaseObject>
 	constructor(props) {
 		super(props)
 		this.elements = props.elements
 	}
 
-	type() {
+	type =()=> {
 		return this.ARRAY_OBJ
 	}
 
-	inspect() {
+	inspect = ()=>  {
 		let s = "["
 		for (let i = 0; i < this.elements.length; i++) {
 			s += this.elements[i].inspect()
@@ -62,91 +83,101 @@ class Array extends BaseObject {
 }
 
 class StringCtr extends BaseObject {
+	value: string
 	constructor(props) {
 		super(props)
 		this.value = props.value
 	}
 
-	inspect() {
+	inspect = ()=>  {
 		return "content of string is: " + this.value
 	}
 
-	type() {
+	type =()=> {
 		return this.STRING_OBJ
 	}
 }
 
 class Integer extends BaseObject {
+	value: number
 	constructor(props) {
 		super(props)
 		this.value = props.value
 	}
 
-	inspect () {
+	inspect = ()=> {
 		return "integer with value:" + this.value
 	}
 
-	type () {
+	type =()=>{
 		return this.INTEGER_OBJ
 	}
 }
 
 class BooleanCtr extends BaseObject {
+	value: boolean
 	constructor (props) {
 		super(props)
 		this.value = props.value
 	}
 
-	type () {
+	type =()=> {
 		return this.BOOLEAN_OBJ
 	}
 
-	inspect () {
+	inspect = ()=> {
 		return "boolean with value: " + this.value
 	}
 }
 
 class Null extends BaseObject {
-	type () {
+	type = ()=> {
 		return this.NULL_OBJ
 	}
-	inspect () {
+	inspect = ()=> {
 		return "null"
 	}
 }
 
 class Error extends BaseObject {
+	msg: string
 	constructor(props) {
 		super(props)
 		this.msg = props.errMsg
 	}
 
-	type () {
+	type = ()=> {
 		return this.ERROR_OBJ
 	}
 
-	inspect () {
+	inspect = ()=> {
 		return this.msg
 	}
 }
 
 class ReturnValues extends BaseObject {
+	valueObject: any
+	msg: string
 	constructor(props) {
 		super(props)
 		this.valueObject = props.value
 	}
 
-	type () {
+	type = ()=> {
 		return this.RETURN_VALUE_OBJECT
 	}
 
-	inspect() {
+	inspect = ()=>  {
 		this.msg = "return with : " + this.valueObject.inspect()
 		return this.msg
 	}
 }
 
-class FunctionLiteral extends BaseObject {
+/*  class FunctionLiteral extends BaseObject {
+	token: any
+	parameters: any
+	blockStatement: any
+	paremeters: any
 	constructor(props) {
 		super(props)
 		this.token = props.token  //对应关键字fn
@@ -154,11 +185,11 @@ class FunctionLiteral extends BaseObject {
 		this.blockStatement = props.blockStatement
 	}
 
-	type() {
+	type = ()=>  {
 		return this.FUNCTION_LITERAL
 	}
 
-	inspect() {
+	inspect = ()=> {
 		let s = "fn("
 		const identifiers = []
 		for (let i = 0; i < this.paremeters.length; i++) {
@@ -170,18 +201,30 @@ class FunctionLiteral extends BaseObject {
 		s += "\n}"
 		return s
 	}
-}
+} */ 
 
 class FunctionCall extends BaseObject {
+	identifiers: any
+	blockStatement: any
+	enviroment: any
 	constructor(props) {
 		super(props)
 		this.identifiers = props.identifiers
 		this.blockStatement = props.blockStatement
 		this.enviroment = undefined
 	}
+	type = ()=>  {
+		return this.FUNCTION_CALL
+	}
+	inspect = ()=> {
+		let s = "fn()"
+		return s
+	}
 }
 
 class Enviroment {
+	map: {}
+	outer: any
 	constructor() {
 		this.map = {}
 		this.outer = undefined
@@ -204,6 +247,8 @@ class Enviroment {
 }
 
 class MonkeyEvaluator {
+	enviroment: Enviroment
+	evalWorker: any
 	constructor (worker) {
 		this.enviroment = new Enviroment()
 		this.evalWorker = worker
@@ -214,10 +259,13 @@ class MonkeyEvaluator {
 		env.outer = outerEnv
 		return env
 	}
-
-	builtins (name, args) { //name->api名称 args-->token类型
+	
+	builtins (name:string, args:BuiltinsArgs) { //name->api名称 args-->token类型
 		//实现内嵌API
-		const props = {}
+		const props = {
+			elements: [],
+			value: 0
+		}
 		switch (name) {
 			case "first":
 				if (args.length !== 1) {
@@ -242,7 +290,7 @@ class MonkeyEvaluator {
 				if (args[0].elements.length > 1) {
 					//去掉第一个元素
 					props.elements = args[0].elements.slice(1)
-					const obj = new Array(props)
+					const obj = new ArrayCtr(props)
 					console.log("rest return: ", obj.inspect())
 					return obj
 				}
@@ -257,7 +305,7 @@ class MonkeyEvaluator {
 
 				props.elements = args[0].elements.slice(0)
 				props.elements.push(args[1])
-				const obj = new Array(props)
+				const obj = new ArrayCtr(props)
 				console.log("new array after calling append is: ",
 					obj.inspect())
 				return obj
@@ -287,8 +335,15 @@ class MonkeyEvaluator {
 		}
 
 	}
-	setExecInfo(node) {
-		const props = {}
+	setExecInfo(node?) {
+		interface Props{
+			env: object;
+			line?: number;
+		}
+		const props:Props = {
+			env:{},
+			line:1
+		}
 		if (node !== undefined) {
 			props['line'] = node.getLineNumber()
 		}
@@ -301,7 +356,7 @@ class MonkeyEvaluator {
 		return props
 	}
 	//单步调试
-	pauseBeforeExec(node) {
+	pauseBeforeExec(node):void {
 		const props = this.setExecInfo(node)
 		this.evalWorker.sendExecInfo("beforeExec", props)
 		this.evalWorker.waitBeforeEval()
@@ -326,7 +381,7 @@ class MonkeyEvaluator {
 					return elements[0]
 				}
 				props.elements = elements
-				return new Array(props)
+				return new ArrayCtr(props)
 			case "IndexExpression":
 				this.pauseBeforeExec(node)
 				const indexLeft = this.eval(node.left)
@@ -448,7 +503,7 @@ class MonkeyEvaluator {
 				console.log(returnObj.inspect())
 				return returnObj
 			default:
-				return new Null()
+				return new Null(null)
 		}
 	}
 
@@ -492,7 +547,7 @@ class MonkeyEvaluator {
 			node.type() === node.BOOLEAN_OBJ;
 	}
 
-	evalIndexExpression(left, index) {
+	evalIndexExpression(left:BaseObject, index) {
 		if (left.type() === left.ARRAY_OBJ &&
 			index.type() === index.INTEGER_OBJ) {
 			return this.evalArrayIndexExpression(left, index)
@@ -575,7 +630,7 @@ class MonkeyEvaluator {
 		return result
 	}
 
-	isError(obj) {
+	isError(obj):boolean {
 		if (obj !== undefined) {
 			return obj.type() === obj.ERROR_OBJ
 		}
@@ -583,8 +638,10 @@ class MonkeyEvaluator {
 		return false
 	}
 
-	newError(msg) {
-		const props = {}
+	newError(msg:string):Error {
+		const props = {
+			errMsg: "",
+		}
 		props.errMsg = msg
 		return new Error(props)
 	}
@@ -636,7 +693,7 @@ class MonkeyEvaluator {
 
 		return result
 	}
-
+	
 	evalInfixExpression(operator, left, right) {
 		if (left.type() !== right.type()) {
 			return  this.newError(
@@ -657,7 +714,9 @@ class MonkeyEvaluator {
 				operator, left, right)
 		}
 
-		const props = {}
+		const props = {
+			value: false
+		}
 		if (operator === '===') {
 			props.value = (left.value === right.value)
 			console.log("result on boolean operation of "
@@ -682,7 +741,9 @@ class MonkeyEvaluator {
 
 		const leftVal = left.value
 		const rightVal = right.value
-		const props = {}
+		const props = {
+			value: ""
+		}
 		props.value = leftVal + rightVal
 		console.log("reuslt of string add is: ", props.value)
 		return new StringCtr(props)
@@ -691,7 +752,9 @@ class MonkeyEvaluator {
 	evalIntegerInfixExpression(operator, left, right) {
 		const leftVal = left.value
 		const rightVal = right.value
-		const props = {}
+		const props: InfixProps = {
+			value:-1
+		}
 		let resultType = "integer"
 
 		switch (operator) {
@@ -744,12 +807,14 @@ class MonkeyEvaluator {
 			case "-":
 				return this.evalMinusPrefixOperatorExpression(right)
 			default:
-				return this.newError("unknown operator:", operator, right.type())
+				return this.newError(`unknown operator:" ${operator}, ${right.type()}`)
 		}
 	}
 	//取反
 	evalBangOperatorExpression(right) {
-		var props = {}
+		const props = {
+			value: false
+		}
 		if (right.type() === right.BOOLEAN_OBJ) {
 			if (right.value === true) {
 				props.value = false
@@ -773,9 +838,11 @@ class MonkeyEvaluator {
 
 	evalMinusPrefixOperatorExpression(right) {
 		if (right.type() !== right.INTEGER_OBJ) {
-			return this.newError("unknown operator:- ", right.type())
+			return this.newError(`unknown operator:- " ${right.type()}`)
 		}
-		const props = {}
+		const props = {
+			value: 1
+		}
 		props.value = -right.value
 		return new Integer(props)
 	}

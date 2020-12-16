@@ -1,8 +1,12 @@
-class Token {
+import MonkeyCompilerEditer from './MonkeyCompilerEditer'
+interface KeyWordMap  {
+	[key: string]:Token
+}
+export class Token {
 	tokenType: number
 	literal: string
 	lineNumber: number
-	constructor(type, literal, lineNumber) {
+	constructor(type: number, literal: string, lineNumber: number) {
 		this.tokenType = type
 		this.literal = literal
 		this.lineNumber = lineNumber
@@ -20,7 +24,7 @@ class Token {
 		return this.lineNumber
 	}
 
-};
+}
 
 class MonkeyLexer {
 	sourceCode: string
@@ -28,8 +32,8 @@ class MonkeyLexer {
 	readPosition: number
 	lineCount: number
 	ch: string|number
-	observer: any
-	observerContext: any
+	observer: MonkeyCompilerEditer
+	observerContext: HTMLElement
 	case: any
 	ILLEGAL: number
 	EOF: number
@@ -62,10 +66,10 @@ class MonkeyLexer {
 	LEFT_BRACKET: number
 	RIGHT_BRACKET: number
 	COLON: number
-	keyWordMap: any[]
-	tokens: any[]
+	keyWordMap: KeyWordMap
+	tokens: Array<Token>
 
-	constructor(sourceCode) { //source:传入的字符串
+	constructor(sourceCode:string) { //source:传入的字符串
 		this.initTokenType() //类型分类
 		this.initKeywords()
 		this.sourceCode = sourceCode
@@ -73,10 +77,8 @@ class MonkeyLexer {
 		this.readPosition = 0
 		this.lineCount = 0
 		this.ch = ''
-
 		this.observer = null
 		this.observerContext = null
-		this.case = null
 	}
 
 	initTokenType() {
@@ -94,8 +96,8 @@ class MonkeyLexer {
 
 	    this.MINUS_SIGN = 8 
 	    this.BANG_SIGN = 9
-	    this.ASTERISK = 10
-	    this.SLASH = 11
+	    this.ASTERISK = 10  //*
+	    this.SLASH = 11		// /
 	    this.LT = 12
 	    this.GT = 13
 	    this.COMMA = 14
@@ -117,13 +119,13 @@ class MonkeyLexer {
 	    this.LEFT_BRACKET = 26
 	    this.RIGHT_BRACKET = 27
 		//大括号
-	    this.LEFT_BRACE = 28
-	    this.RIGHT_BRACE = 29
+	   // this.LEFT_BRACE = 28
+	   // this.RIGHT_BRACE = 29
 		//冒号
 	    this.COLON = 30
 	}
 
-	getLiteralByTokenType(type) {
+	getLiteralByTokenType(type: number) {
 		switch (type) {
 		    case this.EOF:
 		      return "end of file"
@@ -185,30 +187,30 @@ class MonkeyLexer {
 	}
 
 	initKeywords() {
-		this.keyWordMap = [];
-		this.keyWordMap["let"] = new Token(this.LET, "let", 0)
-		this.keyWordMap["if"] = new Token(this.IF, "if", 0)
-		this.keyWordMap["else"] = new Token(this.ELSE, "else", 0)
-
-		this.keyWordMap["fn"] = new Token(this.FUNCTION, "fn", 0)
-		this.keyWordMap["true"] = new Token(this.TRUE, "true", 0)
-		this.keyWordMap["false"] = new Token(this.FALSE, "false", 0)
-		this.keyWordMap["return"] = new Token(this.RETURN, "return", 0)
+		this.keyWordMap = {
+			let: new Token(this.LET, "let", 0),
+			if:new Token(this.IF, "if", 0),
+			else: new Token(this.ELSE, "else", 0),
+			fn: new Token(this.FUNCTION, "fn", 0),
+			true: new Token(this.TRUE, "true", 0),
+			false: new Token(this.FALSE, "false", 0),
+			return: new Token(this.RETURN, "return", 0)
+		}
+		
 	}
 
-	setLexingObserver(o, context, newCase) {
+	setLexingObserver(o: MonkeyCompilerEditer, context: HTMLElement): void {
 		if (o !== null && o !== undefined) {
 			this.observer = o
 			this.observerContext = context
-			this.case = newCase
 		}
 	}
 
-	getKeyWords() {
+	getKeyWords(): KeyWordMap {
 		return this.keyWordMap
 	}
 
-	readChar() {
+	readChar():void {
         if (this.readPosition >= this.sourceCode.length) {
         	this.ch = -1
         } else {
@@ -218,7 +220,7 @@ class MonkeyLexer {
         this.readPosition++
 	}
 
-	peekChar () {
+	peekChar () :boolean|string {
 	     if (this.readPosition >= this.sourceCode.length) {
         	return false
         } else {
@@ -226,7 +228,7 @@ class MonkeyLexer {
         }
 	}
 
-	skipWhiteSpaceAndNewLine() {
+	skipWhiteSpaceAndNewLine(): void {
 		/*
 		忽略空格
 		*/
@@ -241,8 +243,8 @@ class MonkeyLexer {
 		}
 	}
 
-	nextToken () {
-		let tok
+	nextToken ():Token {
+		let tok: Token
 		this.skipWhiteSpaceAndNewLine() 
 		let lineCount = this.lineCount
 		let needReadChar = true;
@@ -329,7 +331,8 @@ class MonkeyLexer {
 			break
 			default:
 			let res = this.readIdentifier()  //判断是不是26个字母或下划线
-			if (res !== false) {
+			if (res !== null) {
+				//是否保留字
 				if (this.keyWordMap[res] !== undefined) {
 					const keyword = this.keyWordMap[res]
 					tok = new Token(keyword.getType(), 
@@ -339,12 +342,12 @@ class MonkeyLexer {
 				}
 			} else {
 				res = this.readNumber() //数字字符串
-				if (res !== false) {
+				if (res !== null) {
 					tok = new Token(this.INTEGER, res, lineCount)
 				}
 			}
 
-			if (res === false) {
+			if (res === "") {
 				tok = undefined
 			}
 			needReadChar = false;
@@ -364,7 +367,7 @@ class MonkeyLexer {
 	readString() {
 		// 越过开始的双引号
 		this.readChar()
-		let str =""
+		let str:string =""
 		while (this.ch !== '"' && this.ch !== this.EOF) {
 			str += this.ch
 			this.readChar()
@@ -376,8 +379,8 @@ class MonkeyLexer {
 
 		return str 
 	}
-	//this.observer指向notifyTokenCreation
-	notifyObserver(token) {
+	//this.observer指向monkeyCompilerEditer
+	notifyObserver(token: Token) {
 		if (this.observer !== null) {
 			this.observer.notifyTokenCreation(token,
 			this.observerContext, this.position - 1, 
@@ -387,15 +390,16 @@ class MonkeyLexer {
 	}
 
 
-	isLetter(ch) {
+	isLetter(ch:string|number):boolean {
 		return ('a' <= ch && ch <= 'z') || 
 		       ('A' <= ch && ch <= 'Z') ||
 		       (ch === '_')
 	}
 
-	readIdentifier() {
+	readIdentifier(): string|null {
 		let identifier = ""
 		let charBegin = false
+		//只能以字母开头
 		if (this.isLetter(this.ch)) {
 			charBegin = true 
 		}
@@ -409,15 +413,15 @@ class MonkeyLexer {
 		if (identifier.length > 0) {
 			return identifier
 		} else {
-			return false
+			return null
 		}
 	}
 
-	isDigit(ch) {
+	isDigit(ch): boolean {
 		return '0' <= ch && ch <= '9'
 	}
 
-	readNumber() {
+	readNumber(): string|null {
 		let number = ""
 		while (this.isDigit(this.ch)) {
 			number += this.ch
@@ -427,11 +431,11 @@ class MonkeyLexer {
 		if (number.length > 0) {
 			return number
 		} else {
-			return false
+			return null
 		}
 	}
 
-	lexing(lexer) {
+	lexing(): void {
 		this.readChar()
 		this.tokens = []
 		let token = this.nextToken()

@@ -9,8 +9,10 @@ import MonkeyCompilerParser from './MonkeyCompilerParser' //不要删除，调�
 // eslint-disable-next-line no-unused-vars
 import MonkeyEvaluator from './MonkeyEvaluator'
 import Worker from './channel.worker'
+// eslint-disable-next-line no-unused-vars
+import EvalWorker from './eval.worker'
 import './css/MonkeyCompilerIDE.css'
-import {highlightLineByLine} from './tools/common.js'
+import {highlightLineByLine} from './tools/common'
 class MonkeyCompilerIDE extends Component {
     constructor(props) {
         super(props)

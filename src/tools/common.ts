@@ -1,5 +1,5 @@
 
-export function changeSpaceToNBSP(str)  {
+export function changeSpaceToNBSP(str:string)  {
     //空格转换成UNICODE空格编码'\u00a0'，用以保留空格
     let s = "";
     for (let i = 0; i < str.length; i++) {
@@ -12,12 +12,11 @@ export function changeSpaceToNBSP(str)  {
     return s;
 }
 //单步调试时高亮正在执行的语法行
-export function highlightLineByLine (line, highLine)  {
+export function highlightLineByLine (line:number, highLine:boolean)  {
     const lineClass = "line" + line;
-    const spans = document.getElementsByClassName(lineClass);
-
+    const spans: HTMLCollection = document.getElementsByClassName(lineClass);
+    const span = spans[0]  as HTMLElement
     if (spans !== null && highLine === true) {
-        const span = spans[0];
         span.style.backgroundColor = "yellow";
         // const arrow = document.createElement("span");
         // arrow.classList.add("anticon");
@@ -26,7 +25,6 @@ export function highlightLineByLine (line, highLine)  {
     }
 
     if (spans !== null && highLine === false) {
-        let span = spans[0];
         span.style.backgroundColor = "white";
         // let arrow = document.getElementsByClassName("ArrowRight");
         // if (arrow !== undefined) {
