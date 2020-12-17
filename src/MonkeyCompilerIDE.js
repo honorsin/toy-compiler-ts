@@ -5,7 +5,7 @@ import { CaretRightOutlined } from '@ant-design/icons';
 import MonkeyLexer from './MonkeyLexer.ts'
 import MonkeyCompilerEditer from './MonkeyCompilerEditer'
 // eslint-disable-next-line no-unused-vars
-import MonkeyCompilerParser from './MonkeyCompilerParser' //不要删除，调试产生sourcemap
+import MonkeyCompilerParser from './MonkeyCompilerParser/MonkeyCompilerParser' //不要删除，调试产生sourcemap
 // eslint-disable-next-line no-unused-vars
 import MonkeyEvaluator from './MonkeyEvaluator'
 import Worker from './channel.worker'

@@ -2,7 +2,7 @@
 /* eslint-disable no-restricted-globals */
 import MonkeyEvaluator from '../src/MonkeyEvaluator.ts'
 import MonkeyLexer from '../src/MonkeyLexer.ts'
-import MonkeyCompilerParser from './MonkeyCompilerParser.ts'
+import MonkeyCompilerParser from './MonkeyCompilerParser/MonkeyCompilerParser.ts'
 
 self.addEventListener("message", handleMessage);
 

@@ -1,15 +1,35 @@
 import React, { Component } from "react";
 import rangy from "rangy/lib/rangy-selectionsaverestore";
-import MonkeyLexer from "./MonkeyLexer.ts";
+import MonkeyLexer,{KeyWordMap as Props}  from "./MonkeyLexer";
 import {Popover} from "antd";
 import {changeSpaceToNBSP, createLineSpan} from "./tools/common"
-
-export default class MonkeyCompilerEditer extends Component {
+interface State {
+  popoverStyle:{
+    title: string,
+    content: string
+  }
+}
+export default class MonkeyCompilerEditer extends Component<Props, State> {
+  keyWords: any;
+  keyWordClass: string;
+  keyWordElementArray: any[];
+  identifierElementArray: any[];
+  textNodeArray: any[];
+  lineNodeClass: string;
+  lineSpanNode: string;
+  identifierClass: string;
+  breakPointClass: string;
+  keyToIngore: string[];
+  bpMap: {};
+  ide: any;
+  divInstance: any;
+  lastBegin: number;
+  lexer: MonkeyLexer;
+  currentElement: any;
   constructor(props) {
     super(props);
     this.state = {
       popoverStyle:{
-        placement: "right",
         title: "",
         content: ""
       }
@@ -45,7 +65,6 @@ export default class MonkeyCompilerEditer extends Component {
   initPopoverControl() {
     this.setState({
       popoverStyle: {
-        placement: "right",
         title: "",
         content: ""
       }
@@ -75,11 +94,13 @@ export default class MonkeyCompilerEditer extends Component {
   }
   // 观察者模式  回调获得token对象，以及初始及结束位置
   notifyTokenCreation(token, elementNode, begin, end) {
-    const e = {};
-    e.node = elementNode;
-    e.begin = begin;
-    e.end = end;
-    e.token = token;
+    const e = {
+      node: elementNode,
+      begin: begin,
+      end: end,
+      token: token
+    };
+    
 
     if (this.keyWords[token.getLiteral()] !== undefined) {
       elementNode.keyWordCount++;
@@ -183,13 +204,13 @@ export default class MonkeyCompilerEditer extends Component {
       }
     }
 
-    const spanNode = document.createElement("span");
+    const spanNode = document.createElement("span") as HTMLElement;
     spanNode.classList.add(this.lineSpanNode);
     spanNode.classList.add(this.lineNodeClass + String(l));
     spanNode.dataset.lineNum = String(l);
 
     spanNode.onclick =  (e) => {
-      this.createBreakPoint(e.toElement);
+      this.createBreakPoint(e.relatedTarget);
     };
 
     nd.parentNode.replaceChild(spanNode, nd);
@@ -275,7 +296,7 @@ export default class MonkeyCompilerEditer extends Component {
     span.onmouseleave = this.handleIdentifierOnMouseOut.bind(this);
     span.classList.add(this.identifierClass);
     span.appendChild(document.createTextNode(token.getLiteral()));
-    span.token = token;
+    span.setAttribute("token",token);
     parentNode.insertBefore(span, elementNode);
     this.lastBegin = end - 1;
     elementNode.identifierCount--;
@@ -368,7 +389,7 @@ export default class MonkeyCompilerEditer extends Component {
         数字处点击的信息，但是设置后mouseenter消息就不能接收到
         于是当我们把鼠标挪到变量上方时，无法显现popover
         */
-    const lineSpans = document.getElementsByClassName(this.lineSpanNode);
+    const lineSpans = document.getElementsByClassName(this.lineSpanNode) as HTMLCollectionOf<HTMLElement>;
     for (let i = 0; i < lineSpans.length; i++) {
       lineSpans[i].style.pointerEvents = "none";
     }

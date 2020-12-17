@@ -1,5 +1,5 @@
 import MonkeyCompilerEditer from './MonkeyCompilerEditer'
-interface KeyWordMap  {
+export interface KeyWordMap  {
 	[key: string]:Token
 }
 export class Token {
@@ -125,7 +125,7 @@ class MonkeyLexer {
 	    this.COLON = 30
 	}
 
-	getLiteralByTokenType(type: number) {
+	getLiteralByTokenType(type: number):string {
 		switch (type) {
 		    case this.EOF:
 		      return "end of file"
@@ -186,7 +186,7 @@ class MonkeyLexer {
 		}
 	}
 
-	initKeywords() {
+	initKeywords(): void{
 		this.keyWordMap = {
 			let: new Token(this.LET, "let", 0),
 			if:new Token(this.IF, "if", 0),
@@ -380,7 +380,7 @@ class MonkeyLexer {
 		return str 
 	}
 	//this.observer指向monkeyCompilerEditer
-	notifyObserver(token: Token) {
+	notifyObserver(token: Token): void {
 		if (this.observer !== null) {
 			this.observer.notifyTokenCreation(token,
 			this.observerContext, this.position - 1, 
