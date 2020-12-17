@@ -16,6 +16,7 @@
       "dom",
       "dom.iterable",
       "esnext",
+      "ES2015",
       "webworker"
     ],
     "allowSyntheticDefaultImports": true,

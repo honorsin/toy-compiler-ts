@@ -1,255 +1,14 @@
-interface InfixProps{
-	value: number|boolean
-}
-interface BuiltinsArgs{
-	[index: number]:ArrayCtr;
-	length:number;
-}
-class BaseObject {
-	INTEGER_OBJ: string
-	BOOLEAN_OBJ: string
-	NULL_OBJ: string
-	ERROR_OBJ: string
-	RETURN_VALUE_OBJECT: string
-	FUNCTION_LITERAL: string
-	FUNCTION_CALL: string
-	STRING_OBJ: string
-	ARRAY_OBJ: string
-	HASH_OBJ: string
-	value: any
-	constructor (prop) {
-		this.INTEGER_OBJ = "INTEGER"
-		this.BOOLEAN_OBJ = "BOOLEAN"
-		this.NULL_OBJ = "NULL"
-		this.ERROR_OBJ = "Error"
-		this.RETURN_VALUE_OBJECT = "Return"
-		this.FUNCTION_LITERAL = "FunctionLiteral"
-		this.FUNCTION_CALL = "FunctionCall"
-		this.STRING_OBJ = "String"
-		this.ARRAY_OBJ = "Array"
-		this.HASH_OBJ = "Hash"
-	}
-
-	type:()=> string
-
-	inspect: ()=> string
-}
-
-class Hash extends BaseObject {
-	keys: any
-	values: any
-	constructor(props) {
-		super(props)
-		this.keys = props.keys
-		this.values = props.values
-	}
-
-	type =()=> {
-		return this.HASH_OBJ
-	}
-
-	inspect = ()=> {
-		let s = "{"
-		for (let i = 0; i < this.keys.length; i++) {
-			const pair =`${this.keys[i].inspect()}: ${this.values[i].inspect()},`
-			s += pair
-		}
-		s += "}"
-		return s
-	}
-}
-
-class ArrayCtr extends BaseObject {
-	elements: Array<BaseObject>
-	constructor(props) {
-		super(props)
-		this.elements = props.elements
-	}
-
-	type =()=> {
-		return this.ARRAY_OBJ
-	}
-
-	inspect = ()=>  {
-		let s = "["
-		for (let i = 0; i < this.elements.length; i++) {
-			s += this.elements[i].inspect()
-			s += ","
-		}
-
-		s += "]"
-		return s
-	}
-}
-
-class StringCtr extends BaseObject {
-	value: string
-	constructor(props) {
-		super(props)
-		this.value = props.value
-	}
-
-	inspect = ()=>  {
-		return "content of string is: " + this.value
-	}
-
-	type =()=> {
-		return this.STRING_OBJ
-	}
-}
-
-class Integer extends BaseObject {
-	value: number
-	constructor(props) {
-		super(props)
-		this.value = props.value
-	}
-
-	inspect = ()=> {
-		return "integer with value:" + this.value
-	}
-
-	type =()=>{
-		return this.INTEGER_OBJ
-	}
-}
-
-class BooleanCtr extends BaseObject {
-	value: boolean
-	constructor (props) {
-		super(props)
-		this.value = props.value
-	}
-
-	type =()=> {
-		return this.BOOLEAN_OBJ
-	}
-
-	inspect = ()=> {
-		return "boolean with value: " + this.value
-	}
-}
-
-class Null extends BaseObject {
-	type = ()=> {
-		return this.NULL_OBJ
-	}
-	inspect = ()=> {
-		return "null"
-	}
-}
-
-class Error extends BaseObject {
-	msg: string
-	constructor(props) {
-		super(props)
-		this.msg = props.errMsg
-	}
-
-	type = ()=> {
-		return this.ERROR_OBJ
-	}
-
-	inspect = ()=> {
-		return this.msg
-	}
-}
-
-class ReturnValues extends BaseObject {
-	valueObject: any
-	msg: string
-	constructor(props) {
-		super(props)
-		this.valueObject = props.value
-	}
-
-	type = ()=> {
-		return this.RETURN_VALUE_OBJECT
-	}
-
-	inspect = ()=>  {
-		this.msg = "return with : " + this.valueObject.inspect()
-		return this.msg
-	}
-}
-
-/*  class FunctionLiteral extends BaseObject {
-	token: any
-	parameters: any
-	blockStatement: any
-	paremeters: any
-	constructor(props) {
-		super(props)
-		this.token = props.token  //对应关键字fn
-		this.parameters = props.identifiers
-		this.blockStatement = props.blockStatement
-	}
-
-	type = ()=>  {
-		return this.FUNCTION_LITERAL
-	}
-
-	inspect = ()=> {
-		let s = "fn("
-		const identifiers = []
-		for (let i = 0; i < this.paremeters.length; i++) {
-			identifiers[i] = this.parameters[i].tokenLiteral
-		}
-		s += identifiers.join(',')
-		s += "){\n"
-		s += this.blockStatement.tokenLiteral
-		s += "\n}"
-		return s
-	}
-} */ 
-
-class FunctionCall extends BaseObject {
-	identifiers: any
-	blockStatement: any
-	enviroment: any
-	constructor(props) {
-		super(props)
-		this.identifiers = props.identifiers
-		this.blockStatement = props.blockStatement
-		this.enviroment = undefined
-	}
-	type = ()=>  {
-		return this.FUNCTION_CALL
-	}
-	inspect = ()=> {
-		let s = "fn()"
-		return s
-	}
-}
-
-class Enviroment {
-	map: {}
-	outer: any
-	constructor() {
-		this.map = {}
-		this.outer = undefined
-	}
-	get(name) {
-		let obj = this.map[name]
-		if (obj !== undefined) {
-			return obj
-		}
-
-		if (this.outer !== undefined) {
-			obj = this.outer.get(name)
-		}
-
-		return obj
-	}
-	set(name, obj) {
-		this.map[name] = obj
-	}
-}
+import {
+	ArrayCtr, BaseObject, BooleanCtr,
+	BuiltinsArgs, Enviroment, FunctionCall,
+	Hash, InfixProps, Null, ReturnValues,
+	StringCtr, Integer
+} from './EvaluatorCtr'
 
 class MonkeyEvaluator {
 	enviroment: Enviroment
 	evalWorker: any
-	constructor (worker) {
+	constructor(worker) {
 		this.enviroment = new Enviroment()
 		this.evalWorker = worker
 	}
@@ -259,8 +18,8 @@ class MonkeyEvaluator {
 		env.outer = outerEnv
 		return env
 	}
-	
-	builtins (name:string, args:BuiltinsArgs) { //name->api名称 args-->token类型
+
+	builtins(name: string, args: BuiltinsArgs) { //name->api名称 args-->token类型
 		//实现内嵌API
 		const props = {
 			elements: [],
@@ -318,7 +77,7 @@ class MonkeyEvaluator {
 					case args[0].STRING_OBJ:
 						props.value = args[0].value.length
 						const obj = new Integer(props)
-						console.log("API len return: ",obj.inspect())
+						console.log("API len return: ", obj.inspect())
 						return obj
 					case args[0].ARRAY_OBJ:
 						props.value = args[0].elements.length
@@ -336,13 +95,13 @@ class MonkeyEvaluator {
 
 	}
 	setExecInfo(node?) {
-		interface Props{
+		interface Props {
 			env: object;
 			line?: number;
 		}
-		const props:Props = {
-			env:{},
-			line:1
+		const props: Props = {
+			env: {},
+			line: 1
 		}
 		if (node !== undefined) {
 			props['line'] = node.getLineNumber()
@@ -356,16 +115,16 @@ class MonkeyEvaluator {
 		return props
 	}
 	//单步调试
-	pauseBeforeExec(node):void {
+	pauseBeforeExec(node): void {
 		const props = this.setExecInfo(node)
 		this.evalWorker.sendExecInfo("beforeExec", props)
 		this.evalWorker.waitBeforeEval()
 	}
-	eval (node) {
+	eval(node) {
 		const props = {
 			value: "",
 			identifiers: "",
-			token:"",
+			token: "",
 			elements: "",
 			blockStatement: ""
 		}
@@ -392,14 +151,14 @@ class MonkeyEvaluator {
 				if (this.isError(index)) {
 					return index
 				}
-				const obj = this.evalIndexExpression(indexLeft , index)
+				const obj = this.evalIndexExpression(indexLeft, index)
 				if (obj != null) {
 					console.log("the index value is :"
-						+index.value
+						+ index.value
 						+ " with content : "
 						+ obj.inspect())
 				}
-				return  obj
+				return obj
 			case "String":
 				props.value = node.tokenLiteral
 				return new StringCtr(props)
@@ -421,8 +180,8 @@ class MonkeyEvaluator {
 				props.identifiers = node.parameters
 				props.blockStatement = node.body
 				const funObj = new FunctionCall(props)
-				funObj.enviroment  = this.newEnclosedEnvironment(this.enviroment)
-				return  funObj
+				funObj.enviroment = this.newEnclosedEnvironment(this.enviroment)
+				return funObj
 			case "CallExpression":
 				this.pauseBeforeExec(node)
 				console.log("execute a function with content:", node.function.tokenLiteral)
@@ -474,8 +233,8 @@ class MonkeyEvaluator {
 				if (this.isError(prefixRight)) {
 					return prefixRight
 				}
-				const preObj =  this.evalPrefixExpression(node.operator, prefixRight)
-				console.log("eval prefix expression: ", preObj.inspect())
+				const preObj = this.evalPrefixExpression(node.operator, prefixRight)
+				console.log("eval prefix expression: ", (preObj as any).inspect())
 				return preObj
 			case "InfixExpression":
 				this.pauseBeforeExec(node)
@@ -499,7 +258,7 @@ class MonkeyEvaluator {
 				if (this.isError(props.value)) {
 					return props.value
 				}
-				const returnObj =  new ReturnValues(props)
+				const returnObj = new ReturnValues(props)
 				console.log(returnObj.inspect())
 				return returnObj
 			default:
@@ -517,7 +276,7 @@ class MonkeyEvaluator {
 		*/
 		const props = {
 			keys: [],
-			values:[]
+			values: []
 		}
 		for (let i = 0; i < node.keys.length; i++) {
 			const key = this.eval(node.keys[i])
@@ -525,7 +284,7 @@ class MonkeyEvaluator {
 				return key
 			}
 			if (this.hashtable(key) !== true) {
-				return  this.newError("unhashtable type:" +
+				return this.newError("unhashtable type:" +
 					key.type())
 			}
 			const value = this.eval(node.values[i])
@@ -547,7 +306,7 @@ class MonkeyEvaluator {
 			node.type() === node.BOOLEAN_OBJ;
 	}
 
-	evalIndexExpression(left:BaseObject, index) {
+	evalIndexExpression(left: BaseObject, index) {
 		if (left.type() === left.ARRAY_OBJ &&
 			index.type() === index.INTEGER_OBJ) {
 			return this.evalArrayIndexExpression(left, index)
@@ -559,7 +318,7 @@ class MonkeyEvaluator {
 
 	evalHashIndexExpression(hash, index) {
 		if (!this.hashtable(index)) {
-			return  this.newError("unhashtable type: " + index.type())
+			return this.newError("unhashtable type: " + index.type())
 		}
 
 		for (let i = 0; i < hash.keys.length; i++) {
@@ -584,7 +343,7 @@ class MonkeyEvaluator {
 
 	evalExpressions(exps) {
 		const result = []
-		for(let i = 0; i < exps.length; i++) {
+		for (let i = 0; i < exps.length; i++) {
 			const evaluated = this.eval(exps[i])
 			if (this.isError(evaluated)) {
 				return evaluated
@@ -597,13 +356,13 @@ class MonkeyEvaluator {
 	evalIdentifier(node, env) {
 		const val = env.get(node.tokenLiteral)
 		if (val === undefined) {
-			return this.newError("identifier no found:"+node.name)
+			return this.newError("identifier no found:" + node.name)
 		}
 
 		return val
 	}
 
-	evalProgram (program) {
+	evalProgram(program) {
 		let result = null
 		for (let i = 0; i < program.statements.length; i++) {
 			result = this.eval(program.statements[i])
@@ -630,7 +389,7 @@ class MonkeyEvaluator {
 		return result
 	}
 
-	isError(obj):boolean {
+	isError(obj): boolean {
 		if (obj !== undefined) {
 			return obj.type() === obj.ERROR_OBJ
 		}
@@ -638,12 +397,12 @@ class MonkeyEvaluator {
 		return false
 	}
 
-	newError(msg:string):Error {
+	newError(msg: string): Error {
 		const props = {
 			errMsg: "",
 		}
 		props.errMsg = msg
-		return new Error(props)
+		return new Error(props.errMsg)
 	}
 
 	evalIfExpression(ifNode) {
@@ -693,10 +452,10 @@ class MonkeyEvaluator {
 
 		return result
 	}
-	
+
 	evalInfixExpression(operator, left, right) {
 		if (left.type() !== right.type()) {
-			return  this.newError(
+			return this.newError(
 				"type mismatch: "
 				+ left.type() + " and " + right.type()
 			)
@@ -731,7 +490,7 @@ class MonkeyEvaluator {
 			return new BooleanCtr(props)
 		}
 
-		return  this.newError("unknown operator: "+ operator)
+		return this.newError("unknown operator: " + operator)
 	}
 
 	evalStringInfixExpression(operator, left, right) {
@@ -753,7 +512,7 @@ class MonkeyEvaluator {
 		const leftVal = left.value
 		const rightVal = right.value
 		const props: InfixProps = {
-			value:-1
+			value: -1
 		}
 		let resultType = "integer"
 

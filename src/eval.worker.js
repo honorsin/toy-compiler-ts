@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-restricted-globals */
-import MonkeyEvaluator from '../src/MonkeyEvaluator.ts'
+import MonkeyEvaluator from './MonkeyCompilerEvaluator/MonkeyEvaluator.ts'
 import MonkeyLexer from '../src/MonkeyLexer.ts'
 import MonkeyCompilerParser from './MonkeyCompilerParser/MonkeyCompilerParser.ts'
 

@@ -1,6 +1,6 @@
 import MonkeyCompilerEditer from './MonkeyCompilerEditer'
 export interface KeyWordMap  {
-	[key: string]:Token
+	[key: string]: Token
 }
 export class Token {
 	tokenType: number

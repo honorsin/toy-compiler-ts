@@ -1,35 +1,51 @@
 import React, { Component } from "react";
 import rangy from "rangy/lib/rangy-selectionsaverestore";
-import MonkeyLexer,{KeyWordMap as Props}  from "./MonkeyLexer";
-import {Popover} from "antd";
-import {changeSpaceToNBSP, createLineSpan} from "./tools/common"
+import MonkeyLexer, { KeyWordMap, Token } from "./MonkeyLexer";
+import { Popover } from "antd";
+import MonkeyCompilerIDE from "./MonkeyCompilerIDE";
+import { changeSpaceToNBSP, createLineSpan } from "./tools/common"
 interface State {
-  popoverStyle:{
+  popoverStyle: {
     title: string,
     content: string
   }
 }
+interface Props {
+  keyWords: KeyWordMap
+}
+interface Element {
+  begin: number
+  end: number
+  node: CurrentElement
+  token: Token
+
+}
+interface CurrentElement extends Text {
+  data: string
+  identifierCount: number
+  keyWordCount: number
+}
 export default class MonkeyCompilerEditer extends Component<Props, State> {
-  keyWords: any;
+  keyWords: KeyWordMap;
   keyWordClass: string;
-  keyWordElementArray: any[];
-  identifierElementArray: any[];
-  textNodeArray: any[];
+  keyWordElementArray: Array<Element>;
+  identifierElementArray: Array<Element>;
+  textNodeArray: Array<Text>;
   lineNodeClass: string;
   lineSpanNode: string;
   identifierClass: string;
   breakPointClass: string;
-  keyToIngore: string[];
+  keyToIngore: Array<string>;
   bpMap: {};
-  ide: any;
-  divInstance: any;
+  ide: MonkeyCompilerIDE;
+  divInstance: HTMLElement;
   lastBegin: number;
   lexer: MonkeyLexer;
-  currentElement: any;
+  currentElement: CurrentElement;
   constructor(props) {
     super(props);
     this.state = {
-      popoverStyle:{
+      popoverStyle: {
         title: "",
         content: ""
       }
@@ -44,7 +60,6 @@ export default class MonkeyCompilerEditer extends Component<Props, State> {
     this.lineSpanNode = "LineSpan";
     this.identifierClass = "Identifier";
     this.breakPointClass = "breakpoint";
-    //this.spanToTokenMap = {};
 
     this.keyToIngore = [
       "Enter",
@@ -58,9 +73,6 @@ export default class MonkeyCompilerEditer extends Component<Props, State> {
     this.bpMap = {};
     this.ide = null;
   }
-  componentDidMount() {
-    this.initPopoverControl();
-  }
 
   initPopoverControl() {
     this.setState({
@@ -71,12 +83,12 @@ export default class MonkeyCompilerEditer extends Component<Props, State> {
     })
   }
 
-  getContent() {
+  getContent(): string {
     return this.divInstance.innerText;
   }
   // dom树，找到节点，提供给lexer进行分词
   changeNode(n) {
-    if (n.childNodes){
+    if (n.childNodes) {
       const f = n.childNodes;
       for (const node of f) {
         this.changeNode(node);
@@ -100,7 +112,6 @@ export default class MonkeyCompilerEditer extends Component<Props, State> {
       end: end,
       token: token
     };
-    
 
     if (this.keyWords[token.getLiteral()] !== undefined) {
       elementNode.keyWordCount++;
@@ -108,18 +119,18 @@ export default class MonkeyCompilerEditer extends Component<Props, State> {
     }
 
     if (
-        elementNode.keyWordCount === 0 &&
-        token.getType() === this.lexer.IDENTIFIER
+      elementNode.keyWordCount === 0 &&
+      token.getType() === this.lexer.IDENTIFIER
     ) {
       elementNode.identifierCount++;
       this.identifierElementArray.push(e); //存入关键词数组
     }
   }
 
-  hightLightKeyWord(token, elementNode, begin, end) {
+  hightLightKeyWord(token: Token, elementNode: CurrentElement, begin: number, end: number) {
     let strBefore = elementNode.data.substr(
-        this.lastBegin,
-        begin - this.lastBegin
+      this.lastBegin,
+      begin - this.lastBegin
     );
     //空格转换为unicode
     strBefore = changeSpaceToNBSP(strBefore);
@@ -144,7 +155,7 @@ export default class MonkeyCompilerEditer extends Component<Props, State> {
 
     this.textNodeArray = [];
 
-    for ( let i = 0; i < this.keyWordElementArray.length; i++) {
+    for (let i = 0; i < this.keyWordElementArray.length; i++) {
       const e = this.keyWordElementArray[i];
       this.currentElement = e.node;
       this.hightLightKeyWord(e.token, e.node, e.begin, e.end);
@@ -188,14 +199,14 @@ export default class MonkeyCompilerEditer extends Component<Props, State> {
     if (currentLineSpan !== null) {
 
       currentLineSpan.onclick = (e) => {
-        this.createBreakPoint(e.toElement);
+        this.createBreakPoint(e);
       }
       return currentLineSpan;
     }
 
     //计算一下当前光标所在节点的前面有多少个div节点，
     //前面的div节点数就是光标所在节点的行数
-    const divElements = this.divInstance.childNodes;
+    const divElements = this.divInstance.children;
     let l = 0;
     for (let i = 0; i < divElements.length; i++) {
       if (divElements[i].tagName === "DIV" && divElements[i].contains(nd)) {
@@ -209,8 +220,8 @@ export default class MonkeyCompilerEditer extends Component<Props, State> {
     spanNode.classList.add(this.lineNodeClass + String(l));
     spanNode.dataset.lineNum = String(l);
 
-    spanNode.onclick =  (e) => {
-      this.createBreakPoint(e.relatedTarget);
+    spanNode.onclick = (e) => {
+      this.createBreakPoint(e);
     };
 
     nd.parentNode.replaceChild(spanNode, nd);
@@ -218,20 +229,21 @@ export default class MonkeyCompilerEditer extends Component<Props, State> {
     return spanNode;
   }
 
-  setIDE(ide) {
+  setIDE(ide: MonkeyCompilerIDE): void {
     this.ide = ide;
   }
 
   createBreakPoint(elem) {
-    if (elem.classList.item(0) !== this.lineSpanNode) {
+    if (elem.toElement.classList.item(0) !== this.lineSpanNode) {
       return;
     }
+    const element = elem.toElement
     //是否已存在断点，是的话就取消断点
-    if (elem.dataset.bp === "true") {
-      let bp = elem.previousSibling;
+    if (element.dataset.bp === "true") {
+      let bp = element.previousSibling;
       bp.remove();
-      elem.dataset.bp = "false";
-      delete this.bpMap["" + elem.dataset.lineNum];
+      element.dataset.bp = "false";
+      delete this.bpMap["" + element.dataset.lineNum];
       if (this.ide) {
         this.ide.updateBreakPointMap(this.bpMap);
       }
@@ -239,8 +251,8 @@ export default class MonkeyCompilerEditer extends Component<Props, State> {
     }
 
     //构造一个红色圆点
-    elem.dataset.bp = "true";
-    this.bpMap["" + elem.dataset.lineNum] = elem.dataset.lineNum;
+    element.dataset.bp = "true";
+    this.bpMap["" + element.dataset.lineNum] = element.dataset.lineNum;
     const bp = document.createElement("span");
     bp.style.height = "10px";
     bp.style.width = "10px";
@@ -248,7 +260,7 @@ export default class MonkeyCompilerEditer extends Component<Props, State> {
     bp.style.borderRadius = "50%";
     bp.style.display = "inline-block";
     bp.classList.add(this.breakPointClass);
-    elem.parentNode.insertBefore(bp, elem.parentNode.firstChild);
+    element.parentNode.insertBefore(bp, element.parentNode.firstChild);
     if (this.ide != null) {
       this.ide.updateBreakPointMap(this.bpMap);
     }
@@ -258,19 +270,20 @@ export default class MonkeyCompilerEditer extends Component<Props, State> {
     e.currentTarget.isOver = true;
     const token = e.currentTarget.token;
     this.setState({
-      popoverStyle:{
-        title:"Syntax",
-        content:  "name:" + token.getLiteral() + "\nType:" + token.getType()
+      popoverStyle: {
+        title: "Syntax",
+        content: "name:" + token.getLiteral() + "\nType:" + token.getType()
       }
     })
     if (this.ide) {
       const env = this.ide.getSymbolInfo(token.getLiteral());
       if (env) {
         this.setState({
-          popoverStyle:{
+          popoverStyle: {
             title: token.getLiteral(),
             content: env
-          }})
+          }
+        })
       }
     }
 
@@ -283,8 +296,8 @@ export default class MonkeyCompilerEditer extends Component<Props, State> {
 
   addPopoverSpanToIdentifier(token, elementNode, begin, end) {
     let strBefore = elementNode.data.substr(
-        this.lastBegin,
-        begin - this.lastBegin
+      this.lastBegin,
+      begin - this.lastBegin
     );
     strBefore = changeSpaceToNBSP(strBefore);
     const textNode = document.createTextNode(strBefore);
@@ -296,13 +309,14 @@ export default class MonkeyCompilerEditer extends Component<Props, State> {
     span.onmouseleave = this.handleIdentifierOnMouseOut.bind(this);
     span.classList.add(this.identifierClass);
     span.appendChild(document.createTextNode(token.getLiteral()));
-    span.setAttribute("token",token);
+    // @ts-ignore  "setAttribute" doesn't work
+    span.token = token;
     parentNode.insertBefore(span, elementNode);
     this.lastBegin = end - 1;
     elementNode.identifierCount--;
   }
 
-  addPopoverByIdentifierArray() {
+  addPopoverByIdentifierArray(): void {
     //该函数的逻辑跟hightLightSyntax一摸一样
     for (let i = 0; i < this.identifierElementArray.length; i++) {
       //用 span 将每一个变量包裹起来，这样鼠标挪上去时就可以弹出popover控件
@@ -325,7 +339,7 @@ export default class MonkeyCompilerEditer extends Component<Props, State> {
     this.identifierElementArray = [];
   }
 
-  preparePopoverForIdentifers() {
+  preparePopoverForIdentifers(): void {
     if (this.textNodeArray.length > 0) {
       //fix bug
       this.identifierElementArray = [];
@@ -335,16 +349,14 @@ export default class MonkeyCompilerEditer extends Component<Props, State> {
         this.addPopoverByIdentifierArray();
       }
       this.textNodeArray = [];
-    } else{
+    } else {
       //为解析出的IDENTIFIER字符串添加鼠标取词功能
       this.addPopoverByIdentifierArray();
     }
-
-
   }
 
   onDivContentChange = (evt) => {
-    if(document.getElementsByClassName("line0").length ===0  && evt.key === "Backspace"){
+    if (document.getElementsByClassName("line0").length === 0 && evt.key === "Backspace") {
       alert('当前在首行，无法再进行回退')
       return;
     }
@@ -362,8 +374,8 @@ export default class MonkeyCompilerEditer extends Component<Props, State> {
     let currentLine = this.getCaretLineNode();
     for (let i = 0; i < currentLine.childNodes.length; i++) {
       if (
-          currentLine.childNodes[i].className === this.keyWordClass ||
-          currentLine.childNodes[i].className === this.identifierClass
+        currentLine.childNodes[i].className === this.keyWordClass ||
+        currentLine.childNodes[i].className === this.identifierClass
       ) {
         const child = currentLine.childNodes[i];
         const t = document.createTextNode(child.innerText);
@@ -408,31 +420,31 @@ export default class MonkeyCompilerEditer extends Component<Props, State> {
   // }
 
   render() {
-    let textAreaStyle = {
+    const textAreaStyle = {
       height: 480,
       border: "1px solid black",
       counterReset: "line",
       fontFamily: "monospace",
     };
     return (
-        <div>
-          <Popover
-              placement="top"
-              content={this.state.popoverStyle.content}
-              title={this.state.popoverStyle.title}
-              id="identifier-show"
-          >
+      <div>
+        <Popover
+          placement="top"
+          content={this.state.popoverStyle.content}
+          title={this.state.popoverStyle.title}
+          id="identifier-show"
+        >
           <div
-              style={textAreaStyle}
-              onKeyUp={this.onDivContentChange}
-              ref={(ref) => {
-                this.divInstance = ref;
-              }}
-              contentEditable
+            style={textAreaStyle}
+            onKeyUp={this.onDivContentChange}
+            ref={(ref) => {
+              this.divInstance = ref;
+            }}
+            contentEditable
           >
           </div>
-          </Popover>
-        </div>
+        </Popover>
+      </div>
     );
   }
 }

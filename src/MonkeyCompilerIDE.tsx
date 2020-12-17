@@ -1,23 +1,33 @@
-import React , {Component, Fragment} from 'react'
-import {Button, PageHeader} from 'antd'
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import React, { Component, Fragment } from 'react'
+import { Button, PageHeader } from 'antd'
 
 import { CaretRightOutlined } from '@ant-design/icons';
-import MonkeyLexer from './MonkeyLexer.ts'
+import MonkeyLexer from './MonkeyLexer'
 import MonkeyCompilerEditer from './MonkeyCompilerEditer'
-// eslint-disable-next-line no-unused-vars
 import MonkeyCompilerParser from './MonkeyCompilerParser/MonkeyCompilerParser' //不要删除，调试产生sourcemap
-// eslint-disable-next-line no-unused-vars
-import MonkeyEvaluator from './MonkeyEvaluator'
+import MonkeyEvaluator from './MonkeyCompilerEvaluator/MonkeyEvaluator'
+// @ts-ignore
 import Worker from './channel.worker'
-// eslint-disable-next-line no-unused-vars
+// @ts-ignore
 import EvalWorker from './eval.worker'
 import './css/MonkeyCompilerIDE.css'
-import {highlightLineByLine} from './tools/common'
-class MonkeyCompilerIDE extends Component {
+import { highlightLineByLine } from './tools/common'
+interface State {
+    stepEnable: boolean
+}
+class MonkeyCompilerIDE extends Component<any, State> {
+    lexer: MonkeyLexer;
+    breakPointMap: any;
+    channelWorker: any;
+    inputInstance: MonkeyCompilerEditer;
+    currentLine: any;
+    currentEnviroment: any;
+    ide: MonkeyCompilerIDE;
     constructor(props) {
         super(props)
         this.lexer = new MonkeyLexer("")
-        this.state = {stepEnable: false}
+        this.state = { stepEnable: false }
         this.breakPointMap = null
         this.channelWorker = new Worker()
         this.inputInstance = null
@@ -36,11 +46,11 @@ class MonkeyCompilerIDE extends Component {
 
     handleMsgFromChannel(e) {
 
-        const cmd =Array.isArray(e.data) ? e.data[0] : e.data
+        const cmd = Array.isArray(e.data) ? e.data[0] : e.data
 
         if (cmd === "beforeExec") {
             console.log("receive before execBefore msg from channel worker")
-            this.setState({stepEnable: true})
+            this.setState({ stepEnable: true })
             const execInfo = e.data[1]
             this.currentLine = execInfo['line']
             this.currentEnviroment = execInfo['env']
@@ -56,9 +66,9 @@ class MonkeyCompilerIDE extends Component {
         return this.currentEnviroment[name]
     }
 
-    onContinueClick () {
+    onContinueClick() {
         this.channelWorker.postMessage("execNext")
-        this.setState({stepEnable: false})
+        this.setState({ stepEnable: false })
         highlightLineByLine(this.currentLine, false)
     }
 
@@ -67,7 +77,7 @@ class MonkeyCompilerIDE extends Component {
         return this.currentEnviroment
     }
 
-    render () {
+    render() {
         return (
             <Fragment>
                 <PageHeader
@@ -76,9 +86,8 @@ class MonkeyCompilerIDE extends Component {
                 />
                 <MonkeyCompilerEditer
                     keyWords={this.lexer.getKeyWords()}
-                    ref = {(ref) => {this.inputInstance = ref}}
-                    ide = {this.ide}
-                   />
+                    ref={(ref) => { this.inputInstance = ref }}
+                />
                 <Button
                     className="button button-run"
                     icon={<CaretRightOutlined />}
@@ -89,7 +98,7 @@ class MonkeyCompilerIDE extends Component {
                 <Button
                     className="button button-step danger"
                     onClick={this.onContinueClick.bind(this)}
-                    disabled = {!this.state.stepEnable}
+                    disabled={!this.state.stepEnable}
                 >
                     Step
                 </Button>
