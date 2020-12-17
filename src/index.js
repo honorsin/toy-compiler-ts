@@ -6,7 +6,7 @@ import registerServiceWorker from './registerServiceWorker';
 import reportWebVitals from './reportWebVitals'
 ReactDOM.render(
   <React.StrictMode>
-    <MonkeyCompilerIDE />,
+    <MonkeyCompilerIDE />
   </React.StrictMode>,
   document.getElementById('root')
 );

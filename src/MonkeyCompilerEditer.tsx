@@ -426,10 +426,15 @@ export default class MonkeyCompilerEditer extends Component<Props, State> {
       counterReset: "line",
       fontFamily: "monospace",
     };
+    const PopoverStyle = {
+      with: 20,
+      color: "#147fb9"
+    }
     return (
       <div>
         <Popover
           placement="top"
+          overlayStyle={PopoverStyle}
           content={this.state.popoverStyle.content}
           title={this.state.popoverStyle.title}
           id="identifier-show"

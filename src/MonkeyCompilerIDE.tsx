@@ -79,7 +79,7 @@ class MonkeyCompilerIDE extends Component<any, State> {
 
     render() {
         return (
-            <Fragment>
+            <div className="layout">
                 <PageHeader
                     className="site-page-header"
                     title="Monkey Compiler"
@@ -102,7 +102,7 @@ class MonkeyCompilerIDE extends Component<any, State> {
                 >
                     Step
                 </Button>
-            </Fragment>
+            </div>
         );
     }
 }

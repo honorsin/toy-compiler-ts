@@ -2,10 +2,15 @@
     background-color: yellowgreen;
     font-size: 30px;
     text-align: center;
+    color: white
 }
 .button{
     margin-top:20px
 }
 .button-step {
     margin-left:20px
+}
+.layout {
+    background-color:black;
+    color: #7d7979
 }
