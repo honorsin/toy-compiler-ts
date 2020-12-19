@@ -18,11 +18,11 @@ interface State {
 }
 class MonkeyCompilerIDE extends Component<any, State> {
     lexer: MonkeyLexer;
-    breakPointMap: any;
-    channelWorker: any;
+    breakPointMap: object;
+    channelWorker: Worker;
     inputInstance: MonkeyCompilerEditer;
-    currentLine: any;
-    currentEnviroment: any;
+    currentLine: number;
+    currentEnviroment: object;
     ide: MonkeyCompilerIDE;
     constructor(props) {
         super(props)
@@ -33,7 +33,7 @@ class MonkeyCompilerIDE extends Component<any, State> {
         this.inputInstance = null
     }
 
-    updateBreakPointMap(bpMap) {
+    updateBreakPointMap(bpMap: {}) {
         this.breakPointMap = bpMap
     }
 

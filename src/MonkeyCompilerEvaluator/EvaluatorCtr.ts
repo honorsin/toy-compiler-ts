@@ -204,7 +204,7 @@ export class ReturnValues extends BaseObject {
 }  */
 
 export class FunctionCall extends BaseObject {
-	identifiers: any
+	identifiers: string
 	blockStatement: any
 	enviroment: any
 	constructor(props) {

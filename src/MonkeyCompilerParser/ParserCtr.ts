@@ -290,7 +290,7 @@ export class ArrayLiteral extends Expression {
 export class IndexExpression extends Expression {
   token: Token
   left: Expression
-  index: any
+  index: Expression
   constructor(props) {
     super(props)
     this.token = props.token 
