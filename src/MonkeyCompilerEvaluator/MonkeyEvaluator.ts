@@ -1,20 +1,20 @@
 import {
 	ArrayCtr, BaseObject, BooleanCtr,
-	BuiltinsArgs, Enviroment, FunctionCall,
+	BuiltinsArgs, Environment, FunctionCall,
 	Hash, InfixProps, Null, ReturnValues,
 	StringCtr, Integer
 } from './EvaluatorCtr'
 
 class MonkeyEvaluator {
-	enviroment: Enviroment
+	environment: Environment
 	evalWorker: any
 	constructor(worker) {
-		this.enviroment = new Enviroment()
+		this.environment = new Environment()
 		this.evalWorker = worker
 	}
 
 	newEnclosedEnvironment(outerEnv) {
-		const env = new Enviroment()
+		const env = new Environment()
 		env.outer = outerEnv
 		return env
 	}
@@ -108,8 +108,8 @@ class MonkeyEvaluator {
 		}
 
 		const env = {}
-		for (const s in this.enviroment.map) {
-			env[s] = this.enviroment.map[s].inspect()
+		for (const s in this.environment.map) {
+			env[s] = this.environment.map[s].inspect()
 		}
 		props['env'] = env
 		return props
@@ -168,11 +168,11 @@ class MonkeyEvaluator {
 				if (this.isError(letVal)) {
 					return letVal
 				}
-				this.enviroment.set(node.name.tokenLiteral, letVal)
+				this.environment.set(node.name.tokenLiteral, letVal)
 				return letVal
 			case "Identifier":
 				console.log("variable name is:" + node.tokenLiteral)
-				const identifierValue = this.evalIdentifier(node, this.enviroment)
+				const identifierValue = this.evalIdentifier(node, this.environment)
 				console.log("it is binding value is " + identifierValue.inspect())
 				return identifierValue
 			case "FunctionLiteral":
@@ -180,7 +180,7 @@ class MonkeyEvaluator {
 				props.identifiers = node.parameters
 				props.blockStatement = node.body
 				const funObj = new FunctionCall(props)
-				funObj.enviroment = this.newEnclosedEnvironment(this.enviroment)
+				funObj.environment = this.newEnclosedEnvironment(this.environment)
 				return funObj
 			case "CallExpression":
 				this.pauseBeforeExec(node)
@@ -197,19 +197,19 @@ class MonkeyEvaluator {
 				for (let i = 0; i < args.length; i++) {
 					console.log(args[i].inspect())
 				}
-				const oldEnviroment = this.enviroment
+				const oldEnvironment = this.environment
 				//设置新的变量绑定环境
-				this.enviroment = functionCall.enviroment
+				this.environment = functionCall.environment
 				//将输入参数名称与传入值在新环境中绑定
 				for (let i = 0; i < functionCall.identifiers.length; i++) {
 					const name = functionCall.identifiers[i].tokenLiteral
 					const val = args[i]
-					this.enviroment.set(name, val)
+					this.environment.set(name, val)
 				}
 				//执行函数体内代码
 				const result = this.eval(functionCall.blockStatement)
 				//执行完函数后，里面恢复原有绑定环境
-				this.enviroment = oldEnviroment
+				this.environment = oldEnvironment
 				if (result.type() === result.RETURN_VALUE_OBJECT) {
 					console.log("function call return with :",
 						result.valueObject.inspect())

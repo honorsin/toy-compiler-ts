@@ -367,6 +367,7 @@ export default class MonkeyCompilerEditer extends Component<Props, State> {
     let bookmark = undefined;
     if (evt.key !== "Enter") {
       //使用rangy组件确认光标能回到原来的位置
+      debugger
       bookmark = rangy.getSelection().getBookmark(this.divInstance);
     }
 
@@ -389,7 +390,6 @@ export default class MonkeyCompilerEditer extends Component<Props, State> {
     this.changeNode(currentLine);
     this.hightLightSyntax();
     this.preparePopoverForIdentifers();
-
     if (evt.key !== "Enter") {
       rangy.getSelection().moveToBookmark(bookmark);
     }

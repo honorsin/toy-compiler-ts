@@ -22,7 +22,7 @@ class MonkeyCompilerIDE extends Component<any, State> {
     channelWorker: Worker;
     inputInstance: MonkeyCompilerEditer;
     currentLine: number;
-    currentEnviroment: object;
+    currentEnvironment: object;
     ide: MonkeyCompilerIDE;
     constructor(props) {
         super(props)
@@ -53,17 +53,17 @@ class MonkeyCompilerIDE extends Component<any, State> {
             this.setState({ stepEnable: true })
             const execInfo = e.data[1]
             this.currentLine = execInfo['line']
-            this.currentEnviroment = execInfo['env']
+            this.currentEnvironment = execInfo['env']
             highlightLineByLine(execInfo['line'], true)
         } else if (cmd === "finishExec") {
             console.log("receive finishExec msg: ", e.data[1])
             const execInfo = e.data[1]
-            this.currentEnviroment = execInfo['env']
+            this.currentEnvironment = execInfo['env']
         }
     }
 
     getSymbolInfo(name) {
-        return this.currentEnviroment[name]
+        return this.currentEnvironment[name]
     }
 
     onContinueClick() {
@@ -73,8 +73,8 @@ class MonkeyCompilerIDE extends Component<any, State> {
     }
 
 
-    getCurrentEnviroment() {
-        return this.currentEnviroment
+    getCurrentEnvironment() {
+        return this.currentEnvironment
     }
 
     render() {

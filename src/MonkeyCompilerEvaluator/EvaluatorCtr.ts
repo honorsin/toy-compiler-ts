@@ -206,12 +206,12 @@ export class ReturnValues extends BaseObject {
 export class FunctionCall extends BaseObject {
 	identifiers: string
 	blockStatement: any
-	enviroment: any
+	environment: any
 	constructor(props) {
 		super(props)
 		this.identifiers = props.identifiers
 		this.blockStatement = props.blockStatement
-		this.enviroment = undefined
+		this.environment = undefined
 	}
 	type = ()=>  {
 		return this.FUNCTION_CALL
@@ -222,7 +222,7 @@ export class FunctionCall extends BaseObject {
 	}
 }
 
-export class Enviroment {
+export class Environment {
 	map: {}
 	outer: any
 	constructor() {
