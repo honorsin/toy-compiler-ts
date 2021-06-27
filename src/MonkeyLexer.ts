@@ -125,6 +125,18 @@ class MonkeyLexer {
 		this.COLON = 30
 	}
 
+	initKeywords(): void {
+		this.keyWordMap = {
+			let: new Token(this.LET, "let", 0),
+			if: new Token(this.IF, "if", 0),
+			else: new Token(this.ELSE, "else", 0),
+			fn: new Token(this.FUNCTION, "fn", 0),
+			true: new Token(this.TRUE, "true", 0),
+			false: new Token(this.FALSE, "false", 0),
+			return: new Token(this.RETURN, "return", 0)
+		}
+	}
+
 	getLiteralByTokenType(type: number): string {
 		switch (type) {
 			case this.EOF:
@@ -184,19 +196,6 @@ class MonkeyLexer {
 			default:
 				return
 		}
-	}
-
-	initKeywords(): void {
-		this.keyWordMap = {
-			let: new Token(this.LET, "let", 0),
-			if: new Token(this.IF, "if", 0),
-			else: new Token(this.ELSE, "else", 0),
-			fn: new Token(this.FUNCTION, "fn", 0),
-			true: new Token(this.TRUE, "true", 0),
-			false: new Token(this.FALSE, "false", 0),
-			return: new Token(this.RETURN, "return", 0)
-		}
-
 	}
 
 	setLexingObserver(o: MonkeyCompilerEditer, context: HTMLElement): void {
@@ -331,9 +330,9 @@ class MonkeyLexer {
 				break
 			default:
 				let res = this.readIdentifier()  //判断是不是26个字母或下划线
-				if (res !== null) {
+				if (res) {
 					//是否保留字
-					if (this.keyWordMap[res] !== undefined) {
+					if (this.keyWordMap[res]) {
 						const keyword = this.keyWordMap[res]
 						tok = new Token(keyword.getType(),
 							keyword.getLiteral(), lineCount)
@@ -342,12 +341,12 @@ class MonkeyLexer {
 					}
 				} else {
 					res = this.readNumber() //数字字符串
-					if (res !== null) {
+					if (res) {
 						tok = new Token(this.INTEGER, res, lineCount)
 					}
 				}
 
-				if (res === "") {
+				if (!res) {
 					tok = undefined
 				}
 				needReadChar = false;

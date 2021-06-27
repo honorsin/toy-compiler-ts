@@ -8,7 +8,7 @@ export class Node {
           this.type = ""
           this.lineNumber =  Number.MAX_SAFE_INTEGER
           for (const i in props) {
-            if (props[i].getLineNumber !== undefined) {
+            if (props[i]?.getLineNumber) {
               console.log("line: " + props[i].getLineNumber())
               if (props[i].getLineNumber() < this.lineNumber) {
                 this.lineNumber = props[i].getLineNumber()
@@ -89,7 +89,7 @@ export class ReturnStatement extends Statement{
     super(props)
     this.token = props.token
     this.expression = props.expression
-    this.tokenLiteral = "return with " + this.expression.getLiteral()
+    this.tokenLiteral = "return with " + this.expression?.getLiteral()
     this.type = "ReturnStatement"
   }
 }
@@ -101,7 +101,7 @@ export class ExpressionStatement extends Statement {
     super(props)
     this.token = props.token
     this.expression = props.expression
-    this.tokenLiteral = "expression: " + this.expression.getLiteral()
+    this.tokenLiteral = "expression: " + this.expression?.getLiteral()
     this.type = "ExpressionStatement"
   }
 }

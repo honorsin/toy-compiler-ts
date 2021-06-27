@@ -113,7 +113,7 @@ export default class MonkeyCompilerEditer extends Component<Props, State> {
       token: token
     };
 
-    if (this.keyWords[token.getLiteral()] !== undefined) {
+    if (this.keyWords[token.getLiteral()]) {
       elementNode.keyWordCount++;
       this.keyWordElementArray.push(e);
     }
@@ -123,7 +123,7 @@ export default class MonkeyCompilerEditer extends Component<Props, State> {
       token.getType() === this.lexer.IDENTIFIER
     ) {
       elementNode.identifierCount++;
-      this.identifierElementArray.push(e); //存入关键词数组
+      this.identifierElementArray.push(e); //存入定义数组
     }
   }
 
@@ -239,7 +239,7 @@ export default class MonkeyCompilerEditer extends Component<Props, State> {
     }
     const element = elem.toElement
     //是否已存在断点，是的话就取消断点
-    if (element.dataset.bp === "true") {
+    if (element.dataset.bp) {
       let bp = element.previousSibling;
       bp.remove();
       element.dataset.bp = "false";
@@ -367,7 +367,6 @@ export default class MonkeyCompilerEditer extends Component<Props, State> {
     let bookmark = undefined;
     if (evt.key !== "Enter") {
       //使用rangy组件确认光标能回到原来的位置
-      debugger
       bookmark = rangy.getSelection().getBookmark(this.divInstance);
     }
 

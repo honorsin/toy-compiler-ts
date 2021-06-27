@@ -90,7 +90,7 @@ class MonkeyCompilerParser {
 
   curOrPeekPrecedence(token: Token): number {
     const p = this.precedencesMap[token.getType()]
-    if (p !== undefined) {
+    if (p) {
       return p
     }
     return this.LOWEST
@@ -223,17 +223,17 @@ class MonkeyCompilerParser {
     return new BooleanCtr(props)
   }
 
-  parseGroupedExpression(caller: MonkeyCompilerParser): Expression| null{
+  parseGroupedExpression(caller: MonkeyCompilerParser): Expression | null {
     caller.nextToken()
     const exp = caller.parseExpression(caller.LOWEST)
-    if (caller.expectPeek(caller.lexer.RIGHT_PARENT) !== true) {
+    if (!caller.expectPeek(caller.lexer.RIGHT_PARENT)) {
       return null
     }
 
     return exp
   }
 
-  parseIfExpression(caller: MonkeyCompilerParser): IfExpression| null{
+  parseIfExpression(caller: MonkeyCompilerParser): IfExpression | null {
     const props = {
       token: caller.curToken,
       condition: null,
@@ -268,7 +268,7 @@ class MonkeyCompilerParser {
     return new IfExpression(props)
   }
 
-  parseBlockStatement(caller: MonkeyCompilerParser): BlockStatement{
+  parseBlockStatement(caller: MonkeyCompilerParser): BlockStatement {
     const props = {
       token: caller.curToken,
       statements: []
@@ -285,7 +285,7 @@ class MonkeyCompilerParser {
     return new BlockStatement(props)
   }
 
-  parseFunctionLiteral(caller: MonkeyCompilerParser): FunctionLiteral| null{
+  parseFunctionLiteral(caller: MonkeyCompilerParser): FunctionLiteral | null {
     const props = {
       token: caller.curToken,
       parameters: [],
@@ -307,7 +307,7 @@ class MonkeyCompilerParser {
     return new FunctionLiteral(props)
   }
 
-  parseFunctionParameters(caller: MonkeyCompilerParser): Array<Expression>| null{
+  parseFunctionParameters(caller: MonkeyCompilerParser): Array<Expression> | null {
     const parameters = []
     if (caller.peekTokenIs(caller.lexer.RIGHT_PARENT)) {
       caller.nextToken()
@@ -347,7 +347,7 @@ class MonkeyCompilerParser {
     return new CallExpression(props)
   }
 
-  parseCallArguments(caller: MonkeyCompilerParser): Array<Expression>| null{
+  parseCallArguments(caller: MonkeyCompilerParser): Array<Expression> | null {
     const args = []
     if (caller.peekTokenIs(caller.lexer.RIGHT_PARENT)) {
       caller.nextToken()
@@ -405,7 +405,7 @@ class MonkeyCompilerParser {
     }
   }
 
-  parseReturnStatement(): ReturnStatement {
+  parseReturnStatement(): ReturnStatement | null {
     const props = {
       token: this.curToken,
       expression: null
@@ -467,16 +467,16 @@ class MonkeyCompilerParser {
 
   parseExpression(precedence: number) {
     const prefix = this.prefixParseFns[this.curToken.getType()]
-    if (prefix == null) {
+    if (!prefix) {
       console.log("no parsing function found for token " +
         this.curToken.getLiteral())
       return null
     }
     let leftExp = prefix(this)
-    while (this.peekTokenIs(this.lexer.SEMICOLON) !== true
+    while (!this.peekTokenIs(this.lexer.SEMICOLON)
       && precedence < this.curOrPeekPrecedence(this.peekToken)) {
       const infix = this.infixParseFns[this.peekToken.getType()]
-      if (infix === null) {
+      if (!infix) {
         return leftExp
       }
       this.nextToken()
